@@ -28,7 +28,7 @@ class _SignInState extends State<SignIn> {
   bool isLoading = false;
 
   signIn() async {
-    if (formKey.currentState.validate()) {
+    if (formKey.currentState?.validate() ?? false) {
       setState(() {
         isLoading = true;
       });
@@ -38,14 +38,15 @@ class _SignInState extends State<SignIn> {
               emailEditingController.text, passwordEditingController.text)
           .then((result) async {
         if (result != null)  {
-          QuerySnapshot userInfoSnapshot =
-              await DatabaseMethods().getUserInfo(emailEditingController.text);
+          QuerySnapshot<Map<String, dynamic>> userInfoSnapshot =
+          await DatabaseMethods().getUserInfo(emailEditingController.text);
 
           HelperFunctions.saveUserLoggedInSharedPreference(true);
           HelperFunctions.saveUserNameSharedPreference(
-              userInfoSnapshot.documents[0].data["userName"]);
+              userInfoSnapshot.docs[0]['userName']);
+
           HelperFunctions.saveUserEmailSharedPreference(
-              userInfoSnapshot.documents[0].data["userEmail"]);
+              userInfoSnapshot.docs[0]['userEmail']);
 
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => ChatRoom()));
@@ -62,7 +63,7 @@ class _SignInState extends State<SignIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appBarMain(context),
+      appBar: AppBarMain(),
       body: isLoading
           ? Container(
               child: Center(child: CircularProgressIndicator()),
@@ -78,11 +79,12 @@ class _SignInState extends State<SignIn> {
                       children: [
                         TextFormField(
                           validator: (val) {
-                            return RegExp(
-                                        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                                    .hasMatch(val)
+                            if (val == null || val.isEmpty) {
+                              return "Email can't be empty";
+                            }
+                            return RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(val)
                                 ? null
-                                : "Please Enter Correct Email";
+                                : "Please enter a valid email";
                           },
                           controller: emailEditingController,
                           style: simpleTextStyle(),
@@ -90,11 +92,12 @@ class _SignInState extends State<SignIn> {
                         ),
                         TextFormField(
                           obscureText: true,
-                          validator: (val) {
-                            return val.length > 6
-                                ? null
-                                : "Enter Password 6+ characters";
-                          },
+                            validator: (val) {
+                              if (val == null || val.isEmpty) {
+                                return "Password can't be empty";
+                              }
+                              return val.length > 6 ? null : "Enter password 6+ characters";
+                            },
                           style: simpleTextStyle(),
                           controller: passwordEditingController,
                           decoration: textFieldInputDecoration("password"),

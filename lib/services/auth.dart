@@ -7,15 +7,15 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  User _userFromFirebaseUser(FirebaseUser user) {
-    return user != null ? User(uid: user.uid) : null;
+  MyUser? _userFromFirebaseUser(User? user) {
+    return user != null ? MyUser(uid: user.uid) : null;
   }
 
   Future signInWithEmailAndPassword(String email, String password) async {
     try {
-      AuthResult result = await _auth.signInWithEmailAndPassword(
+      UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
-      FirebaseUser user = result.user;
+      User? user = result.user;
       return _userFromFirebaseUser(user);
     } catch (e) {
       print(e.toString());
@@ -25,9 +25,9 @@ class AuthService {
 
   Future signUpWithEmailAndPassword(String email, String password) async {
     try {
-      AuthResult result = await _auth.createUserWithEmailAndPassword(
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
-      FirebaseUser user = result.user;
+      User? user = result.user;
       return _userFromFirebaseUser(user);
     } catch (e) {
       print(e.toString());
@@ -44,26 +44,39 @@ class AuthService {
     }
   }
 
-  Future<FirebaseUser> signInWithGoogle(BuildContext context) async {
-    final GoogleSignIn _googleSignIn = new GoogleSignIn();
+  //
+  // Future<User?> signInWithGoogle(BuildContext context) async {
+  //   try {
+  //     final GoogleSignIn googleSignIn = GoogleSignIn();
+  //     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+  //
+  //     if (googleUser == null) return null; // User cancelled sign-in
+  //
+  //     final GoogleSignInAuthentication googleAuth =
+  //     await googleUser.authentication;
+  //
+  //     final AuthCredential credential = GoogleAuthProvider.credential(
+  //       idToken: googleAuth.idToken,
+  //       accessToken: googleAuth.accessToken,
+  //     );
+  //
+  //     UserCredential result = await _auth.signInWithCredential(credential);
+  //     User? userDetails = result.user;
+  //
+  //     if (userDetails != null) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => Chat()),
+  //       );
+  //     }
+  //
+  //     return userDetails;
+  //   } catch (e) {
+  //     print('Google Sign-In error: $e');
+  //     return null;
+  //   }
+  // }
 
-    final GoogleSignInAccount googleSignInAccount =
-        await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
-
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
-        idToken: googleSignInAuthentication.idToken,
-        accessToken: googleSignInAuthentication.accessToken);
-
-    AuthResult result = await _auth.signInWithCredential(credential);
-    FirebaseUser userDetails = result.user;
-
-    if (result == null) {
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Chat()));
-    }
-  }
 
   Future signOut() async {
     try {

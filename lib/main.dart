@@ -8,26 +8,23 @@ void main() {
 }
 
 class MyApp extends StatefulWidget {
-  // This widget is the root of your application.
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-
-  bool userIsLoggedIn;
+  bool? userIsLoggedIn;
 
   @override
   void initState() {
-    getLoggedInState();
     super.initState();
+    getLoggedInState();
   }
 
-  getLoggedInState() async {
-    await HelperFunctions.getUserLoggedInSharedPreference().then((value){
-      setState(() {
-        userIsLoggedIn  = value;
-      });
+  Future<void> getLoggedInState() async {
+    bool? value = await HelperFunctions.getUserLoggedInSharedPreference();
+    setState(() {
+      userIsLoggedIn = value;
     });
   }
 
@@ -37,18 +34,21 @@ class _MyAppState extends State<MyApp> {
       title: 'FlutterChat',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: Color(0xff145C9E),
-        scaffoldBackgroundColor: Color(0xff1F1F1F),
-        accentColor: Color(0xff007EF4),
+        primaryColor: const Color(0xff145C9E),
+        scaffoldBackgroundColor: const Color(0xff1F1F1F),
+        colorScheme: ColorScheme.light(
+          primary: const Color(0xff145C9E),
+          secondary: const Color(0xff007EF4),
+        ),
         fontFamily: "OverpassRegular",
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: userIsLoggedIn != null ?  userIsLoggedIn ? ChatRoom() : Authenticate()
-          : Container(
-        child: Center(
-          child: Authenticate(),
-        ),
-      ),
+      home: userIsLoggedIn == null
+          ? const Center(child: CircularProgressIndicator())
+          : userIsLoggedIn!
+          ? ChatRoom()
+          : Authenticate(),
     );
   }
 }
+

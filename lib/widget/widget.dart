@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 
-Widget appBarMain(BuildContext context) {
-  return AppBar(
-    title: Image.asset(
-      "assets/images/logo.png",
-      height: 40,
-    ),
-    elevation: 0.0,
-    centerTitle: false,
-  );
+class AppBarMain extends StatelessWidget implements PreferredSizeWidget {
+  const AppBarMain({Key? key}) : super(key: key);
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      title: Image.asset(
+        "assets/images/logo.png",
+        height: 40,
+      ),
+      elevation: 0.0,
+      centerTitle: false,
+    );
+  }
 }
 
 InputDecoration textFieldInputDecoration(String hintText) {

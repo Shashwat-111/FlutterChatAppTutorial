@@ -1,64 +1,73 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DatabaseMethods {
-  Future<void> addUserInfo(userData) async {
-    Firestore.instance.collection("users").add(userData).catchError((e) {
-      print(e.toString());
-    });
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> addUserInfo(Map<String, dynamic> userData) async {
+    try {
+      await _firestore.collection("users").add(userData);
+    } catch (e) {
+      print("Error adding user info: $e");
+    }
   }
 
-  getUserInfo(String email) async {
-    return Firestore.instance
-        .collection("users")
-        .where("userEmail", isEqualTo: email)
-        .getDocuments()
-        .catchError((e) {
-      print(e.toString());
-    });
+  Future<QuerySnapshot<Map<String, dynamic>>> getUserInfo(String email) async {
+    try {
+      return await _firestore
+          .collection("users")
+          .where("userEmail", isEqualTo: email)
+          .get();
+    } catch (e) {
+      print("Error fetching user info: $e");
+      rethrow;
+    }
   }
 
-  searchByName(String searchField) {
-    return Firestore.instance
-        .collection("users")
-        .where('userName', isEqualTo: searchField)
-        .getDocuments();
+  Future<QuerySnapshot<Map<String, dynamic>>> searchByName(String searchField) async {
+    try {
+      return await _firestore
+          .collection("users")
+          .where('userName', isEqualTo: searchField)
+          .get();
+    } catch (e) {
+      print("Error searching user: $e");
+      rethrow;
+    }
   }
 
-  Future<bool> addChatRoom(chatRoom, chatRoomId) {
-    Firestore.instance
+  Future<void> addChatRoom(Map<String, dynamic> chatRoom, String chatRoomId) async {
+    try {
+      await _firestore.collection("chatRoom").doc(chatRoomId).set(chatRoom);
+    } catch (e) {
+      print("Error adding chatroom: $e");
+    }
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getChats(String chatRoomId) {
+    return _firestore
         .collection("chatRoom")
-        .document(chatRoomId)
-        .setData(chatRoom)
-        .catchError((e) {
-      print(e);
-    });
-  }
-
-  getChats(String chatRoomId) async{
-    return Firestore.instance
-        .collection("chatRoom")
-        .document(chatRoomId)
+        .doc(chatRoomId)
         .collection("chats")
         .orderBy('time')
         .snapshots();
   }
 
-
-  Future<void> addMessage(String chatRoomId, chatMessageData){
-
-    Firestore.instance.collection("chatRoom")
-        .document(chatRoomId)
-        .collection("chats")
-        .add(chatMessageData).catchError((e){
-          print(e.toString());
-    });
+  Future<void> addMessage(String chatRoomId, Map<String, dynamic> chatMessageData) async {
+    try {
+      await _firestore
+          .collection("chatRoom")
+          .doc(chatRoomId)
+          .collection("chats")
+          .add(chatMessageData);
+    } catch (e) {
+      print("Error sending message: $e");
+    }
   }
 
-  getUserChats(String itIsMyName) async {
-    return await Firestore.instance
+  Stream<QuerySnapshot<Map<String, dynamic>>> getUserChats(String userName) {
+    return _firestore
         .collection("chatRoom")
-        .where('users', arrayContains: itIsMyName)
+        .where('users', arrayContains: userName)
         .snapshots();
   }
-
 }

@@ -6,6 +6,7 @@ import 'package:chatapp/services/auth.dart';
 import 'package:chatapp/services/database.dart';
 import 'package:chatapp/views/chat.dart';
 import 'package:chatapp/views/search.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ChatRoom extends StatefulWidget {
@@ -14,26 +15,31 @@ class ChatRoom extends StatefulWidget {
 }
 
 class _ChatRoomState extends State<ChatRoom> {
-  Stream chatRooms;
+  late Stream<QuerySnapshot> chatRooms;
 
   Widget chatRoomsList() {
-    return StreamBuilder(
+    return StreamBuilder<QuerySnapshot>(
       stream: chatRooms,
       builder: (context, snapshot) {
-        return snapshot.hasData
-            ? ListView.builder(
-                itemCount: snapshot.data.documents.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return ChatRoomsTile(
-                    userName: snapshot.data.documents[index].data['chatRoomId']
-                        .toString()
-                        .replaceAll("_", "")
-                        .replaceAll(Constants.myName, ""),
-                    chatRoomId: snapshot.data.documents[index].data["chatRoomId"],
-                  );
-                })
-            : Container();
+        if (!snapshot.hasData) return Container();
+
+        final docs = snapshot.data!.docs;
+
+        return ListView.builder(
+          itemCount: docs.length,
+          shrinkWrap: true,
+          itemBuilder: (context, index) {
+            String chatRoomId = docs[index]['chatRoomId'];
+            String userName = chatRoomId
+                .replaceAll("_", "")
+                .replaceAll(Constants.myName, "");
+
+            return ChatRoomsTile(
+              userName: userName,
+              chatRoomId: chatRoomId,
+            );
+          },
+        );
       },
     );
   }
@@ -46,13 +52,7 @@ class _ChatRoomState extends State<ChatRoom> {
 
   getUserInfogetChats() async {
     Constants.myName = await HelperFunctions.getUserNameSharedPreference();
-    DatabaseMethods().getUserChats(Constants.myName).then((snapshots) {
-      setState(() {
-        chatRooms = snapshots;
-        print(
-            "we got the data + ${chatRooms.toString()} this is name  ${Constants.myName}");
-      });
-    });
+    chatRooms = DatabaseMethods().getUserChats(Constants.myName);
   }
 
   @override
@@ -96,7 +96,7 @@ class ChatRoomsTile extends StatelessWidget {
   final String userName;
   final String chatRoomId;
 
-  ChatRoomsTile({this.userName,@required this.chatRoomId});
+  ChatRoomsTile({required this.userName,required this.chatRoomId});
 
   @override
   Widget build(BuildContext context) {

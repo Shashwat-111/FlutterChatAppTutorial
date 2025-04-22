@@ -15,7 +15,7 @@ class _SearchState extends State<Search> {
 
   DatabaseMethods databaseMethods = new DatabaseMethods();
   TextEditingController searchEditingController = new TextEditingController();
-  QuerySnapshot searchResultSnapshot;
+  QuerySnapshot<Map<String, dynamic>>? searchResultSnapshot;
 
   bool isLoading = false;
   bool haveUserSearched = false;
@@ -37,17 +37,21 @@ class _SearchState extends State<Search> {
     }
   }
 
-  Widget userList(){
-    return haveUserSearched ? ListView.builder(
+  Widget userList() {
+    return haveUserSearched
+        ? ListView.builder(
       shrinkWrap: true,
-      itemCount: searchResultSnapshot.documents.length,
-        itemBuilder: (context, index){
+      itemCount: searchResultSnapshot?.docs.length ?? 0,
+      itemBuilder: (context, index) {
         return userTile(
-          searchResultSnapshot.documents[index].data["userName"],
-          searchResultSnapshot.documents[index].data["userEmail"],
+          searchResultSnapshot!.docs[index]['userName'],
+          searchResultSnapshot!.docs[index]['userEmail'],
         );
-        }) : Container();
+      },
+    )
+        : Container();
   }
+
 
   /// 1.create a chatroom, send user to the chatroom, other userdetails
   sendMessage(String userName){
@@ -136,7 +140,7 @@ class _SearchState extends State<Search> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appBarMain(context),
+      appBar: AppBarMain(),
       body: isLoading ? Container(
         child: Center(
           child: CircularProgressIndicator(),
