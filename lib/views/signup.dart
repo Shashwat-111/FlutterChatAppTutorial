@@ -26,7 +26,7 @@ class _SignUpState extends State<SignUp> {
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
 
-  singUp() async {
+  signUp() async {
 
     if(formKey.currentState?.validate() ?? false){
       setState(() {
@@ -111,7 +111,7 @@ class _SignUpState extends State<SignUp> {
             ),
             GestureDetector(
               onTap: (){
-                singUp();
+                signUp();
               },
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 16),

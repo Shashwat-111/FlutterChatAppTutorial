@@ -37,6 +37,7 @@ class _SignInState extends State<SignIn> {
           .signInWithEmailAndPassword(
               emailEditingController.text, passwordEditingController.text)
           .then((result) async {
+            print("sign in result: $result");
         if (result != null)  {
           QuerySnapshot<Map<String, dynamic>> userInfoSnapshot =
           await DatabaseMethods().getUserInfo(emailEditingController.text);

@@ -9,6 +9,7 @@ class AppBarMain extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      backgroundColor: Theme.of(context).primaryColor,
       title: Image.asset(
         "assets/images/logo.png",
         height: 40,

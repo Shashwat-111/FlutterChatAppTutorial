@@ -43,10 +43,12 @@ class _SearchState extends State<Search> {
       shrinkWrap: true,
       itemCount: searchResultSnapshot?.docs.length ?? 0,
       itemBuilder: (context, index) {
-        return userTile(
-          searchResultSnapshot!.docs[index]['userName'],
-          searchResultSnapshot!.docs[index]['userEmail'],
-        );
+        final name = searchResultSnapshot!.docs[index]['userName'];
+        final email = searchResultSnapshot!.docs[index]['userEmail'];
+
+        if (name == Constants.myName) return SizedBox.shrink(); // hide self
+
+        return userTile(name, email);
       },
     )
         : Container();

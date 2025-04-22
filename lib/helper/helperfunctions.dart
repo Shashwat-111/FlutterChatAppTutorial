@@ -40,4 +40,9 @@ class HelperFunctions{
     return await preferences.getString(sharedPreferenceUserEmailKey);
   }
 
+  static Future signOut() async{
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    return await preferences.clear();
+  }
+
 }

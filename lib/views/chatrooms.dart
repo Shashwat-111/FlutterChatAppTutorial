@@ -15,13 +15,41 @@ class ChatRoom extends StatefulWidget {
 }
 
 class _ChatRoomState extends State<ChatRoom> {
-  late Stream<QuerySnapshot> chatRooms;
+  Stream<QuerySnapshot>? chatRooms;
+
+  @override
+  void initState() {
+    super.initState();
+    getUserInfogetChats();
+  }
+
+  getUserInfogetChats() async {
+    Constants.myName = await HelperFunctions.getUserNameSharedPreference();
+    debugPrint("The username is ${Constants.myName}");
+
+    Stream<QuerySnapshot> chats =
+    await DatabaseMethods().getUserChats(Constants.myName);
+
+    setState(() {
+      chatRooms = chats;
+    });
+  }
 
   Widget chatRoomsList() {
+    if (chatRooms == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
     return StreamBuilder<QuerySnapshot>(
       stream: chatRooms,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return Container();
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Center(child: Text("No chats yet."));
+        }
 
         final docs = snapshot.data!.docs;
 
@@ -32,8 +60,11 @@ class _ChatRoomState extends State<ChatRoom> {
             String chatRoomId = docs[index]['chatRoomId'];
             String userName = chatRoomId
                 .replaceAll("_", "")
-                .replaceAll(Constants.myName, "");
-
+                .replaceAll(Constants.myName, "")
+                .trim();
+            if (userName.isEmpty) {
+              return SizedBox.shrink();
+            }
             return ChatRoomsTile(
               userName: userName,
               chatRoomId: chatRoomId,
@@ -45,42 +76,34 @@ class _ChatRoomState extends State<ChatRoom> {
   }
 
   @override
-  void initState() {
-    getUserInfogetChats();
-    super.initState();
-  }
-
-  getUserInfogetChats() async {
-    Constants.myName = await HelperFunctions.getUserNameSharedPreference();
-    chatRooms = DatabaseMethods().getUserChats(Constants.myName);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset(
-          "assets/images/logo.png",
-          height: 40,
-        ),
+        backgroundColor: Theme.of(context).primaryColor,
+        title: Image.asset("assets/images/logo.png", height: 40),
         elevation: 0.0,
         centerTitle: false,
         actions: [
           GestureDetector(
             onTap: () {
+              //clear stored shared preferences
+              HelperFunctions.signOut();
+
+              //sign out from firebase
               AuthService().signOut();
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => Authenticate()));
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Authenticate()),
+              );
             },
-            child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Icon(Icons.exit_to_app)),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Icon(Icons.exit_to_app),
+            ),
           )
         ],
       ),
-      body: Container(
-        child: chatRoomsList(),
-      ),
+      body: chatRoomsList(),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.search),
         onPressed: () {
@@ -91,6 +114,7 @@ class _ChatRoomState extends State<ChatRoom> {
     );
   }
 }
+
 
 class ChatRoomsTile extends StatelessWidget {
   final String userName;
